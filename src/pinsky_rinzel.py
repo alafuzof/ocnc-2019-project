@@ -115,7 +115,6 @@ class PinskyRinzelCell:
         parameters = convert_specific_units(parameters, parameters['membrane_area'])
         parameters['calcium_scaler'] = 1*cm2/parameters['membrane_area']
         
-        
         equations = '\n'.join([self.somatic_equations, 
                                self.dendritic_equations, 
                                self.other_equations])
