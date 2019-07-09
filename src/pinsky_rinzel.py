@@ -30,19 +30,18 @@ class PinskyRinzelCell:
             'E_AMPA':   0*mV} # -- " -- 
         
         self.somatic_parameters = {
-            # Somatic injection current, used to provide a stable resting membrane voltage
-            'Is_soma': -0.5*uA/cm2,
             # Maximal conductances
             'gs_leak':  0.1*msiemens/cm2, 
             'gs_Na':   30.0*msiemens/cm2,
             'gs_Kdr':  15.0*msiemens/cm2}
         self.somatic_equations = '''
         # Currents: leak + sodium + delayed-rectifier-potassium + soma-dendrite-coupling + somatic injection
-        dVs/dt = (-Is_leak - Is_Na - Is_Kdr + Is_couple/pp + Is_soma/pp)/Cm : volt
+        dVs/dt = (-Is_leak - Is_Na - Is_Kdr + Is_couple/pp + Is_inj/pp)/Cm : volt
         Is_leak   = gs_leak*(Vs-E_leak) : amp
         Is_Na     = gs_Na*Minfs*Minfs*hs*(Vs-E_Na) : amp
         Is_Kdr    = gs_Kdr*ns*(Vs-E_K): amp
         Is_couple = gc*(Vd-Vs): amp
+        Is_inj : amp
         # Instant activation (Minfs) and dynamic inactivation (hs) of sodium current
         Minfs   = alphams/(alphams+betams) : 1
         alphams = 0.32*(-46.9-Vs/mV)/(exp((-46.9-Vs/mV)/4.0)-1.0)/ms : Hz
@@ -57,8 +56,6 @@ class PinskyRinzelCell:
         '''
         
         self.dendritic_parameters = {
-                # Dendritic injection current
-                'Id_dendrite': 0.0*nA,
                 # Maximal conductances / conductance densities
                 'gd_leak':  0.1*msiemens/cm2, 
                 'gd_Ca':   10.0*msiemens/cm2,
@@ -76,7 +73,7 @@ class PinskyRinzelCell:
         self.dendritic_equations = '''
         # Currents: leak + calcium + after-hyperpolarization-potassium + 
         # calcium-activated-potassium + soma-dendrite-coupling + AMPA + NMDA
-        dVd/dt = (-Id_leak - Id_Ca - Id_Kahp - Id_KCa - Id_syn/(1-pp) + Id_couple/(1-pp) + Id_dendrite/(1-pp))/Cm : volt
+        dVd/dt = (-Id_leak - Id_Ca - Id_Kahp - Id_KCa - Id_syn/(1-pp) + Id_couple/(1-pp) + Id_inj/(1-pp))/Cm : volt
         Id_leak   = gd_leak*(Vd-E_leak): amp
         Id_Ca     = gd_Ca*sd*sd*(Vd-E_Ca) : amp
         Id_Kahp   = gd_Kahp*qd*(Vd-E_K): amp
@@ -85,6 +82,7 @@ class PinskyRinzelCell:
         Id_syn    = Id_AMPA + Id_NMDA: amp
         Id_AMPA   = gd_AMPA*clip(syn_AMPA,0,7000)*(Vd-E_AMPA): amp
         Id_NMDA   = gd_NMDA*clip(Si,0.0,Smax)*(Vd-E_NMDA)/(1+0.28*exp(-0.062*(Vd/mV))) : amp
+        Id_inj : amp
         # Activation of calcium current
         dsd/dt = alphasd-(alphasd+betasd)*sd : 1
         alphasd = 1.6/(1.0+exp(-0.072*(Vd/mV-5.0)))/ms : Hz
@@ -133,6 +131,10 @@ class PinskyRinzelCell:
         group.Cad = 0.20 # Dendritic Ca "concentration"
         group.Si = 0.0 # Dendritic NMDA opening
         group.syn_AMPA = 0.0 # Dendritic AMPA opening
+        
+        # Somatic injection current, used to provide a stable resting membrane voltage
+        group.Is_inj = -0.5*(uA/cm2)*parameters['membrane_area']
+        group.Id_inj = 0.0*nA
         
         return group
     
