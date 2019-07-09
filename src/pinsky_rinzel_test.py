@@ -22,8 +22,8 @@ def simulate_baseline(time=10*second):
 
 def simulate_fig2a(time=2*second, dt=None):
     prc = PinskyRinzelCell()
-    prc.somatic_parameters['Is_soma'] = 0.75*uA/cm2
     prc_group = prc.generate_neuron_group(n_cells=1, dt=None)
+    prc_group.Is_inj = 0.75*(uA/cm2)*prc.general_parameters['membrane_area']
     net = br2.Network(prc_group)
     mon = br2.StateMonitor(prc_group, True, record=True)
     net.add(mon)
@@ -58,15 +58,21 @@ def plot_fig3_style(mon):
     return ax
 
 def main():
+    import os
+    os.makedirs('../figures/', exist_ok=True)
+    
     prc, prc_group, net, mon = simulate_baseline()
     ax = plot_fig2_style(mon)
-    ax.figure.savefig('./figures/pinsky_rinzel_baseline.png')
+    ax.figure.savefig('../figures/test_pinsky_rinzel_baseline.png')
     
     prc, prc_group, net, mon = simulate_fig2a()
     ax = plot_fig2_style(mon)
-    ax.figure.savefig('./figures/pinsky_rinzel_fig2a.png')
+    ax.figure.savefig('../figures/test_pinsky_rinzel_fig2a.png')
     
     prc, prc_group, net, mon = simulate_fig2a(time=0.2*second, dt=10*us)
     ax = plot_fig3_style(mon)
     ax.set_xlim(100,150)
-    ax.figure.savefig('./figures/pinsky_rinzel_fig3.png')
+    ax.figure.savefig('../figures/test_pinsky_rinzel_fig3.png')
+
+if __name__ == '__main__':
+    main()
