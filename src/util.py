@@ -16,6 +16,14 @@ def replace_equation(equations, match, new_equation):
     split_eq = [x if match not in x else new_equation for x in split_eq]
     return '\n'.join(split_eq)
 
+def remove_equation(equations, match):
+    split_eq = equations.split('\n')
+    n_match = sum(0 if match not in x else 1 for x in split_eq) 
+    if n_match != 1:
+        raise ValueError(f'Only one equation should match {match}, now there are {n_matches} matches!')
+    split_eq = [x for x in split_eq if match not in x]
+    return '\n'.join(split_eq)
+
 def convert_specific_units(parameters, membrane_area):
     res = parameters.copy()
     for key,value in res.items():
